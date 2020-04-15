@@ -1,12 +1,4 @@
-cf-cli/cf-cli_6.30.0_linux_x86-64.tgz:
-  size: 5909858
-  object_id: 05cc04b6-4299-4745-6c9c-2aa4af8e57d7
-  sha: sha256:ec65236766c364baaeacc867bbd6bd2280386b0e286ae78fe6f3b8fbe176f2c3
 mongodb/mongodb-linux-x86_64-3.6.6.tar.gz:
   size: 100627358
   object_id: 35cb3540-3672-4724-7ae9-1be7a1a261c0
   sha: sha256:db01cf5dc8c53094ae6869d3ef4bce6cd146201282e2729fc987f3141938ab27
-openjdk/openjdk.tar.gz:
-  size: 126476497
-  object_id: d2654231-af7a-47e2-5cf2-1e82d585d90c
-  sha: sha256:52b7343f0c9f3b231d9902326c47b833add3f6ee481f489f6437a9fe7bbc0e09
