@@ -78,7 +78,7 @@ To upgrade the version of MongoDB, a new blob will need to be added. Download th
 
 ### CI Pipeline
 
-This release is continuously built from master on the Smarsh prod Concourse. The pipeline lives in [ci/pipeline.yml](ci/pipeline.yml).
+This release is continuously built from master on the Smarsh prod Concourse, under the `alcatraz` team. The pipeline config can be found in [ci/pipeline.yml](ci/pipeline.yml).
 
 ## Usage
 
