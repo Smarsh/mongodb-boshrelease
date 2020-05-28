@@ -1,4 +1,3 @@
-mongodb/mongodb-linux-x86_64-3.6.6.tar.gz:
-  size: 100627358
-  object_id: 35cb3540-3672-4724-7ae9-1be7a1a261c0
-  sha: sha256:db01cf5dc8c53094ae6869d3ef4bce6cd146201282e2729fc987f3141938ab27
+mongodb/mongodb-linux-x86_64-3.6.18.tar.gz:
+  size: 103372089
+  sha: sha256:f7921cc53bf20966c420cc0dbb9e5a3bfe20519f87863cdc2583142cbc20b5b1

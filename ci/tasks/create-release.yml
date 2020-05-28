@@ -1,0 +1,8 @@
+platform: linux
+inputs:
+- name: git-bosh-release
+- name: s3-dev-release
+outputs:
+- name: create-release
+run:
+  path: git-bosh-release/ci/tasks/create-release.sh 
