@@ -1,134 +1,82 @@
+---
 anchors:
-  blobstore_credentials: &blobstore_credentials
-    AWS_ACCESS_KEY_ID: ((smarsh_bosh_releases_bucket_access_key_id))
-    AWS_SECRET_ACCESS_KEY: ((smarsh_bosh_releases_bucket_secret_access_key))
   smarsh_releases_bucket: &smarsh_releases_bucket
     bucket: smarsh-bosh-releases
-    access_key_id: ((smarsh_bosh_releases_bucket_access_key_id))
-    secret_access_key: ((smarsh_bosh_releases_bucket_secret_access_key))
+    access_key_id: ((aws-access-key-id))
+    secret_access_key: ((aws-secret-access-key))
+  blobstore_credentials: &blobstore_credentials
+    AWS_ACCESS_KEY_ID: ((aws-access-key-id))
+    AWS_SECRET_ACCESS_KEY: ((aws-secret-access-key))
+  bosh-creds: &bosh-creds
+    jumpbox_key: ((jumpbox-key))
+    ca_cert: ((ca-cert))
+    BOSH_ENVIRONMENT: ((bosh-environment))
 
 resources:
-# Docker images
-- name: pcf-ops
-  type: docker-image
-  source:
-    repository: engineerbetter/pcf-ops
-    tag: latest
+  - name: boshcli2
+    type: registry-image
+    source:
+      repository: afamuzoka/boshcli2
+      username: ((docker.username))
+      password: ((docker.password))
+      tag: latest
 
-# Git
-- name: mongodb_bosh_release_git
-  type: git
-  source:
-    ignore_paths:
-    - releases
-    - .final_builds
-    - README.md
-    branch: master
-    uri: https://github.com/Smarsh/mongodb-boshrelease.git
+  - name: version
+    type: semver
+    source:
+      driver: s3
+      << : *smarsh_releases_bucket
+      region: eu-west-2
+      key: sredataservices/((bosh-release-name))/version
+      initial_version: ((initial_version))
 
-- name: mongodb_bosh_release_version
-  type: semver
-  source:
-    driver: git
-    branch: version
-    file: version
-    uri: git@github.com:Smarsh/mongodb-boshrelease.git
-    private_key: ((mongodb_bosh_release_deploy_key))
+  - name: git-repo
+    type: git
+    icon: github-circle
+    source:
+      uri: ((url))
+      branch: SAAS-281
+  
+  - name: s3-final-release
+    type: s3
+    source:
+      << : *smarsh_releases_bucket
+      regexp: sredataservices/release/((bosh-release-name))-(.*).tgz
 
-# S3
-- name: mongodb_bosh_candidate_release_s3
-  type: s3
-  source:
-    << : *smarsh_releases_bucket
-    regexp: mongodb/candidates/mongodb-(.*).tgz
-
-- name: mongodb_bosh_release_s3
-  type: s3
-  source:
-    << : *smarsh_releases_bucket
-    regexp: mongodb/mongodb-(.*).tgz
-
-# Stemcells
-- name: old_xenial_stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-warden-boshlite-ubuntu-xenial-go_agent
-    version_family: '621.50'
-
-- name: xenial_stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-warden-boshlite-ubuntu-xenial-go_agent
 
 jobs:
-- name: create_candidate_release
-  serial: true
-  plan:
-  - get: mongodb_bosh_release_version
-    params:
-      bump: patch
-      pre: rc
-  - get: mongodb_bosh_release_git
-    trigger: true
-  - task: create_release
-    file: mongodb_bosh_release_git/ci/tasks/create_release.yml
-    params:
-      <<: *blobstore_credentials
-  - put: mongodb_bosh_candidate_release_s3
-    params:
-      file: release_tarball/mongodb-*.tgz
-  - put: mongodb_bosh_release_version
-    params:
-      file: mongodb_bosh_release_version/version
 
-- name: system_test_candidate_release
-  serial: true
-  serial_groups:
-  - mongodb_release
-  plan:
-  - get: mongodb_bosh_candidate_release_s3
-    passed:
-    - create_candidate_release
-  - get: mongodb_bosh_release_git
-    trigger: true
-    passed:
-    - create_candidate_release
-  - get: mongodb_bosh_release_version
-    passed:
-    - create_candidate_release
-  - get: xenial_stemcell
-  - get: old_xenial_stemcell
-  - task: system_tests
-    file: mongodb_bosh_release_git/ci/tasks/system_test.yml
-    privileged: true
-    timeout: 90m
-
-- name: create_final_release
-  serial: true
-  serial_groups:
-  - mongodb_release
-  plan:
-  - get: pcf-ops
-  - get: mongodb_bosh_candidate_release_s3
-    trigger: true
-    passed:
-    - system_test_candidate_release
-  - get: mongodb_bosh_release_git
-    passed:
-    - system_test_candidate_release
-  - get: mongodb_bosh_release_version
-    passed:
-    - system_test_candidate_release
-    params:
-      bump: final
-  - task: create_final_release
-    file: mongodb_bosh_release_git/ci/tasks/create_final_release.yml
-    params:
-      <<: *blobstore_credentials
-    privileged: true
-  - put: mongodb_bosh_release_s3
-    params:
-      file: release_tarball/mongodb-*.tgz
-  - put: mongodb_bosh_release_version
-    params:
-      file: mongodb_bosh_release_version/version
+  - name: cut-release
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+        - get: git-repo
+          trigger: true
+          version: latest
+        - get: boshcli2
+      - get: version
+        trigger: false
+        params:
+          bump: patch
+      - task: add-blobs
+        file: git-repo/ci/tasks/add-blobs.yml
+        image: boshcli2
+        params: 
+          << : *blobstore_credentials
+          << : *bosh-creds
+          BLOBSTORE: smarsh-bosh-release-blobs
+      - task: create-final-release
+        file: git-repo/ci/tasks/create-final-release.yml
+        image: boshcli2
+        params: 
+          << : *blobstore_credentials
+          << : *bosh-creds
+          BLOBSTORE: smarsh-bosh-release-blobs
+      - put: s3-final-release
+        params:
+          file: release-tarball/((bosh-release-name))-*.tgz
+      - put: version
+        params: {file: version/number}
+       
+      
