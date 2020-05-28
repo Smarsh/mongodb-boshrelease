@@ -80,13 +80,13 @@ options:
   credentials_source: env_or_profile
 EOF
 
-echo bosh finalize-release --version $VERSION $DEV_RELEASE_PATH
-echo bosh create-release --final --name kafka --version=${VERSION} --timestamp-version --tarball ${tarBallFile}
+bosh finalize-release --version $VERSION $DEV_RELEASE_PATH
+bosh create-release --final --name kafka --version=${VERSION} --timestamp-version --tarball ${tarBallFile}
 
-git add -A
 git status
+git add -A
 
-git commit -m "Adding final release $VERSION via concourse"
+[[ -n "$(git status --porcelain > /dev/null 2>&1)" ]] && git commit -m "Adding final release $VERSION via concourse"
 popd
 
 
