@@ -8,7 +8,7 @@ fi
 
 SHELL=/bin/bash
 ROOT_DIR=$(pwd)
-OUTPUT_DIR=add-blobs
+OUTPUT_DIR=../add-blobs
 SOURCE_DL_DIR=.downloads
 BOSH_RELEASE_VERSION_FILE=../version/number
 SOURCE_VERSION_FILE="$(pwd)/ci/VERSIONS"
@@ -121,6 +121,7 @@ main() {
       loginfo "Download GoLang vendor package"
       bosh vendor-package golang-1.9-linux ../golang-release
     fi
+
     tarBallPath=${OUTPUT_DIR}/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
     
     
