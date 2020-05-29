@@ -79,7 +79,7 @@ git update-index --assume-unchanged config/final.yml
 # [[ -d .final_builds ]]  && rm -fr .final_builds
 
 git status
-bosh finalize-release --name=mongodb-services --version=${BOSH_RELEASE_VERSION} ../add-blobs/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
+bosh finalize-release --name=mongodb-services --version=${BOSH_RELEASE_VERSION} ../add-blob-release/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
 
 git status
 git add config .final_builds releases || true
