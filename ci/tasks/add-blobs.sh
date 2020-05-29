@@ -106,6 +106,7 @@ main() {
 
   done
 
+  rm -fr ${SOURCE_DL_DIR}
 
   if [[ ${RUN_PIPELINE} -eq 1 ]] ; then
 
@@ -138,6 +139,10 @@ blobstore:
     credentials_source: env_or_profile
 EOF
 
+  loginfo "Download GoLang vendor package"
+
+  bosh vendor-package golang-1.9-linux ../golang-release
+
   loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
 
   bosh blobs
@@ -150,11 +155,12 @@ EOF
 
       git checkout ${BRANCH}
       git status
-      git add config .final_builds || true
       git update-index --assume-unchanged config/final.yml
+      git add -A
       git status
-      git commit -m "Adding blobs to blobs store ${BLOBSTORE} via concourse"
-
+      if [[ -n "$(git status --porcelain)" ]]; then
+        git commit -m "Adding blobs to blobs store ${BLOBSTORE} via concourse"
+      fi
       git clone -b ${BRANCH} . ${PRERELEASE_REPO}
     fi
   fi
