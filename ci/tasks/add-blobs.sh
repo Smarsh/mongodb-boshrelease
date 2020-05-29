@@ -117,6 +117,12 @@ main() {
     # that requires this hidden directory to be renamed/removed
     rm -fr .final_builds
     
+    BRANCH=$(git name-rev --name-only $(git rev-list  HEAD --date-order --max-count 1))
+    
+    git status
+
+    git checkout ${BRANCH}
+
     if [[ -d ../golang-release ]]; then
       loginfo "Download GoLang vendor package"
       bosh vendor-package golang-1.9-linux ../golang-release
@@ -124,12 +130,8 @@ main() {
 
     tarBallPath=${OUTPUT_DIR}/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
     
-    
     loginfo "Create release version ${BOSH_RELEASE_VERSION}"
     bosh create-release --force --name ${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
-    
-    
-    BRANCH=$(git name-rev --name-only $(git rev-list  HEAD --date-order --max-count 1))
     
     cat << EOF > config/final.yml
 ---
@@ -149,8 +151,6 @@ blobstore:
     credentials_source: env_or_profile
 EOF
 
-
-
     loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
     bosh blobs
     bosh -n upload-blobs
@@ -160,8 +160,6 @@ EOF
       git config --global user.email "CI@localhost"
       git config --global user.name "CI Bot "
 
-      git status
-      git checkout ${BRANCH}
       git status
       git update-index --assume-unchanged config/final.yml
       git add -A
