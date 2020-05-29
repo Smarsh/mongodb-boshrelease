@@ -108,16 +108,24 @@ main() {
 
   rm -fr ${SOURCE_DL_DIR}
 
+  if [[ -d ../golang-release ]]; then
+    loginfo "Download GoLang vendor package"
+    bosh vendor-package golang-1.9-linux ../golang-release
+  fi
+  
   if [[ ${RUN_PIPELINE} -eq 1 ]] ; then
 
-    loginfo "Create release version ${BOSH_RELEASE_VERSION}"
     
     # fix - removing .final_builds folder is not necessary when running locally however when running in a pipeline 
     # which uses bosh version 6.2.1 bosh create-release --force fails
     # that requires this hidden directory to be renamed/removed
     [[ -f  ${BOSH_RELEASE_VERSION_FILE} ]] && rm -fr .final_builds
     tarBallPath=${OUTPUT_DIR}/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
+    
+    
+    loginfo "Create release version ${BOSH_RELEASE_VERSION}"
     bosh create-release --force --name ${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
+    
     
     BRANCH=$(git name-rev --name-only $(git rev-list  HEAD --date-order --max-count 1))
     
@@ -139,9 +147,7 @@ blobstore:
     credentials_source: env_or_profile
 EOF
 
-  loginfo "Download GoLang vendor package"
 
-  bosh vendor-package golang-1.9-linux ../golang-release
 
   loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
 

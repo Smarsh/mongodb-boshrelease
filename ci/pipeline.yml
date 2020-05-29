@@ -63,7 +63,6 @@ jobs:
           version: latest
         - get: git-golang
           trigger: false
-          input_mapping: {golang-release: git-golang}
         - get: boshcli2
       - get: version
         trigger: false
@@ -76,6 +75,7 @@ jobs:
           << : *blobstore_credentials
           << : *bosh-creds
           BLOBSTORE: smarsh-bosh-release-blobs
+        input_mapping: {golang-release: git-golang}
       - task: create-final-release
         file: git-repo/ci/tasks/create-final-release.yml
         image: boshcli2
