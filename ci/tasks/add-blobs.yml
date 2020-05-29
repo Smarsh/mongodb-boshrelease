@@ -5,7 +5,7 @@ inputs:
 - name: version
 - name: golang-release
 outputs:
-- name: add-blobs
+- name: add-blob-release
 - name: git-prerelease-repo
 run:
   path: ci/tasks/add-blobs.sh
