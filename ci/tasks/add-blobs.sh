@@ -165,7 +165,7 @@ EOF
       git add -A
       git status
       git commit -m "Adding blobs to blobs store ${BLOBSTORE} via concourse"
-      git clone -b ${BRANCH} . ${PRERELEASE_REPO}
+      git clone -b ${BRANCH} --recurse-submodules . ${PRERELEASE_REPO}
     fi
   fi
 
