@@ -115,7 +115,7 @@ main() {
     # fix - removing .final_builds folder is not necessary when running locally however when running in a pipeline 
     # which uses bosh version 6.2.1 bosh create-release --force fails
     # that requires this hidden directory to be renamed/removed
-    [[ -f  ${BOSH_RELEASE_VERSION_FILE} ]] && rm -fr .final_builds
+    rm -fr .final_builds
     
     if [[ -d ../golang-release ]]; then
       loginfo "Download GoLang vendor package"
@@ -151,16 +151,16 @@ EOF
 
 
 
-  loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
-
-  bosh blobs
-  bosh -n upload-blobs
+    loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
+    bosh blobs
+    bosh -n upload-blobs
   
     if [[ -n "$(git status --porcelain)" ]]; then
 
       git config --global user.email "CI@localhost"
       git config --global user.name "CI Bot "
 
+      git status
       git checkout ${BRANCH}
       git status
       git update-index --assume-unchanged config/final.yml
