@@ -108,10 +108,6 @@ main() {
 
   rm -fr ${SOURCE_DL_DIR}
 
-  if [[ -d ../golang-release ]]; then
-    loginfo "Download GoLang vendor package"
-    bosh vendor-package golang-1.9-linux ../golang-release
-  fi
   
   if [[ ${RUN_PIPELINE} -eq 1 ]] ; then
 
@@ -120,6 +116,11 @@ main() {
     # which uses bosh version 6.2.1 bosh create-release --force fails
     # that requires this hidden directory to be renamed/removed
     [[ -f  ${BOSH_RELEASE_VERSION_FILE} ]] && rm -fr .final_builds
+    
+    if [[ -d ../golang-release ]]; then
+      loginfo "Download GoLang vendor package"
+      bosh vendor-package golang-1.9-linux ../golang-release
+    fi
     tarBallPath=${OUTPUT_DIR}/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
     
     
