@@ -76,7 +76,7 @@ EOF
 
 git update-index --assume-unchanged config/final.yml
 
-[[ -d .final_builds ]]  && rm -fr .final_builds
+# [[ -d .final_builds ]]  && rm -fr .final_builds
 
 git status
 
