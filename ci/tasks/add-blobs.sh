@@ -166,9 +166,7 @@ EOF
       git update-index --assume-unchanged config/final.yml
       git add -A
       git status
-      if [[ -n "$(git status --porcelain)" ]]; then
-        git commit -m "Adding blobs to blobs store ${BLOBSTORE} via concourse"
-      fi
+      git commit -m "Adding blobs to blobs store ${BLOBSTORE} via concourse"
       git clone -b ${BRANCH} . ${PRERELEASE_REPO}
     fi
   fi
