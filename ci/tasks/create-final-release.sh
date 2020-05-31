@@ -48,15 +48,15 @@ export BOSH_ALL_PROXY=ssh+socks5://jumpbox@${BOSH_ENVIRONMENT}:22?private-key=${
 ## change directories into the master branch of the repository that is cloned, not the branched clone
 pushd $PRERELEASE_REPO
 
-git config --global user.email "ci@localhost"
-git config --global user.name "CI Bot"
+  git config --global user.email "ci@localhost"
+  git config --global user.name "CI Bot"
 
-loginfo "Cutting a final release"
+  loginfo "Cutting a final release"
 
-## Download all of the blobs and packages from the boshrelease bucket that is read only
+  ## Download all of the blobs and packages from the boshrelease bucket that is read only
 
-    
-    cat << EOF > config/final.yml
+      
+      cat << EOF > config/final.yml
 ---
 blobstore:
   provider: s3
@@ -65,8 +65,8 @@ blobstore:
 name: ${RELEASE_NAME}
 EOF
 
-## Create private.yml for BOSH to use our AWS keys
-    cat << EOF > config/private.yml
+  ## Create private.yml for BOSH to use our AWS keys
+      cat << EOF > config/private.yml
 ---
 blobstore:
   provider: s3
@@ -74,15 +74,20 @@ blobstore:
     credentials_source: env_or_profile
 EOF
 
-git update-index --assume-unchanged config/final.yml
+  git update-index --assume-unchanged config/final.yml
 
-# [[ -d .final_builds ]]  && rm -fr .final_builds
+  # [[ -d .final_builds ]]  && rm -fr .final_builds
 
-git status
-bosh finalize-release --name=mongodb-services --version=${BOSH_RELEASE_VERSION} ../add-blob-release/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
+  git status
 
-git status
-git add config .final_builds releases || true
-git commit -am "Final release stage change, ${BOSH_RELEASE_VERSION} via concourse"
+  loginfo "Create final release"
+  bosh finalize-release --name=mongodb-services --version=${BOSH_RELEASE_VERSION} ../add-blob-release/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
 
+  git status
+
+  git add config .final_builds releases || true
+  [[ -n $(git status --porcelain > /dev/null 2>&1 )]] && git commit -am "Final release stage change, ${BOSH_RELEASE_VERSION} via concourse"
+
+  loginfo("Create release final release tarball")
+  bosh create-release --tarball=../release-tarball/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz --final
 popd

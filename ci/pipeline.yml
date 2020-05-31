@@ -42,7 +42,7 @@ resources:
     icon: github-circle
     source:
       uri: https://github.com/bosh-packages/golang-release.git
-      branch: master
+      branch: ((git.branch))
       tag_filter: v0.9.0
   
   - name: s3-final-release
