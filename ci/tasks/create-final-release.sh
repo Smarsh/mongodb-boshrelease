@@ -88,6 +88,6 @@ EOF
   git add config .final_builds releases || true
   [[ -n "$(git status --porcelain > /dev/null 2>&1 )" ]] && git commit -am "Final release stage change, ${BOSH_RELEASE_VERSION} via concourse"
 
-  loginfo("Create release final release tarball")
+  loginfo "Create release final release tarball"
   bosh create-release --tarball=../release-tarball/${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz --final
 popd
