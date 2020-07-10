@@ -1,5 +1,5 @@
 ---
-final_name: mongodb-services
+name: mongodb-services
 blobstore:
   provider: s3
   options:

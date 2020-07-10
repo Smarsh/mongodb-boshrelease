@@ -8,11 +8,11 @@ fi
 
 SHELL=/bin/bash
 ROOT_DIR=$(pwd)
-OUTPUT_DIR=../add-blob-release
+OUTPUT_DIR=../rc-release
 SOURCE_DL_DIR=.downloads
 BOSH_RELEASE_VERSION_FILE=../version/number
 SOURCE_VERSION_FILE="$(pwd)/ci/VERSIONS"
-RELEASE_NAME=$(bosh int config/final.yml --path /final_name)
+RELEASE_NAME=$(bosh int config/final.yml --path /name)
 PRERELEASE_REPO=../git-prerelease-repo
 RUN_PIPELINE=0 # if script is running locally then 0 if in consourse pipeline then 1
 
@@ -87,6 +87,7 @@ main() {
 
   [[ ! -d ${SOURCE_DL_DIR} ]] && mkdir ${SOURCE_DL_DIR}
   
+
   for key in "${!downloads[@]}" 
   do
     local file=${SOURCE_DL_DIR}/$(basename ${key})
@@ -126,23 +127,13 @@ main() {
 
     git checkout ${BRANCH}
 
-    if [[ -d ../golang-release ]]; then
-      loginfo "Download GoLang vendor package"
-      bosh vendor-package golang-1.9-linux ../golang-release
-    fi
-
-    tarBallPath=${OUTPUT_DIR}/${BOSH_RELEASE_FILE}
-    
-    loginfo "Create release version ${BOSH_RELEASE_VERSION}"
-    bosh create-release --force --name ${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
-    
     cat << EOF > config/final.yml
 ---
 blobstore:
   provider: s3
   options:
     bucket_name: ${BLOBSTORE}
-final_name: ${RELEASE_NAME}
+name: ${RELEASE_NAME}
 EOF
 
 ## Create private.yml for BOSH to use our AWS keys
@@ -153,9 +144,27 @@ blobstore:
   options:
     credentials_source: env_or_profile
 EOF
+   
+    if [[ -n $(ls -1 ./vendors 2>/dev/null) ]]; then
+      for key in ${!vendorPackages[@]}
+      do
+        local package=${key}
+        local vendorSrcDir="./vendors/${vendorPackages[${key}]}"
 
-    loginfo "Upload blobs ${BOSH_RELEASE_VERSION}"
+        loginfo "Vendor release package ${package}"
+        bosh vendor-package ${package} ${vendorSrcDir}
+      done
+    fi
+  
+    tarBallPath=${OUTPUT_DIR}/${BOSH_RELEASE_FILE}
+    
+    loginfo "Create release version ${BOSH_RELEASE_VERSION}"
+    bosh create-release --force --name ${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
+    
+
+    loginfo "BOSH release information for version ${BOSH_RELEASE_VERSION}"
     bosh blobs
+    loginfo "Upload BOSH release ${BOSH_RELEASE_VERSION}"
     bosh -n upload-blobs
   
     if [[ -n "$(git status --porcelain)" ]]; then
@@ -168,12 +177,15 @@ EOF
       git add -A
       git status
       git commit -m "Adding blob, ${BOSH_RELEASE_FILE} to ${BLOBSTORE} via concourse"
+      
       [[ -d ${PRERELEASE_REPO} ]] && mkdir -p ${PRERELEASE_REPO}
-      cp -r . ${PRERELEASE_REPO}
+      loginfo "Upload cache"
+      tar zcf ${PRERELEASE_REPO}/git-${RELEASE_NAME}-prerelease-${BOSH_RELEASE_VERSION}.tgz .
     fi
   fi
-
+  loginfo "Success"
 }
 
 bosh reset-release
 main
+exit 0

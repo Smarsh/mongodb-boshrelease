@@ -10,10 +10,11 @@ fi
 
 GITHUB_REPO="git-repo"
 BOSH_RELEASE_VERSION=$(cat ${ROOT_DIR}/version/version)
-BOSH_RELEASE_VERSION_FILE=../version/number
-RELEASE_NAME=$(bosh int ${GITHUB_REPO}/config/final.yml --path /final_name)
+RELEASE_NAME=$(bosh int ${GITHUB_REPO}/config/final.yml --path /name)
 BOSH_RELEASE_FILE=${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
 PRERELEASE_REPO=./git-prerelease-repo
+S3_GIT_PRERELEASE_REPO=./s3-git-prerelease-repo
+S3_GIT_PRERELEASE_VERSION=$(cat ${S3_GIT_PRERELEASE_REPO}/version)
 RUN_PIPELINE=0 # if script is running locally then 0 if in consourse pipeline then 1
 
 BOLD=$(tput bold)
@@ -46,8 +47,17 @@ loginfo "Configuring BOSH environment"
 bosh alias-env $BOSH_ENVIRONMENT -e $BOSH_ENVIRONMENT --ca-cert ${ROOT_DIR}/ca_cert.crt
 export BOSH_ALL_PROXY=ssh+socks5://jumpbox@${BOSH_ENVIRONMENT}:22?private-key=${ROOT_DIR}/jumpbox.key
 
+[[ ! -d ${PRERELEASE_REPO} ]] && mkdir ${PRERELEASE_REPO}
+(cd ${PRERELEASE_REPO} ; tar zxf ../${S3_GIT_PRERELEASE_REPO}/git-${RELEASE_NAME}-prerelease-${S3_GIT_PRERELEASE_VERSION}.tgz)
+
 ## change directories into the master branch of the repository that is cloned, not the branched clone
+
+echo "${BOSH_RELEASE_VERSION}" > version-tag/tag-name
+echo "Release ${BOSH_RELEASE_VERSION} created by Concourse" > version-tag/annotate-msg
+
 pushd $PRERELEASE_REPO
+
+  bosh reset-release
 
   git config --global user.email "ci@localhost"
   git config --global user.name "CI Bot"
@@ -77,18 +87,13 @@ EOF
 
   git update-index --assume-unchanged config/final.yml
 
-  # [[ -d .final_builds ]]  && rm -fr .final_builds
-
-  git status
-
-  loginfo "Create final release"
-  bosh finalize-release --name=${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} ../add-blob-release/${BOSH_RELEASE_FILE}
-
   git status
 
   git add config .final_builds releases || true
   [[ -n "$(git status --porcelain)" ]] && git commit -am "Final release stage change, ${BOSH_RELEASE_VERSION} via concourse"
 
   loginfo "Create release final release tarball"
-  bosh create-release --tarball=../release-tarball/${BOSH_RELEASE_FILE} --final
+  bosh create-release --tarball=../release-tarball/${BOSH_RELEASE_FILE} --version=${BOSH_RELEASE_VERSION} --name=${RELEASE_NAME} --final
 popd
+loginfo "Success"
+exit 0
