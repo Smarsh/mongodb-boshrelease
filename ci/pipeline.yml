@@ -25,7 +25,7 @@ resources:
       driver: s3
       << : *smarsh_releases_bucket
       region: eu-west-2
-      key: sredataservices/((bosh-release-name))/version
+      key: dataservices/((bosh-release-name))/version
       initial_version: ((initial_version))
 
   - name: git-repo
@@ -40,19 +40,19 @@ resources:
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: sredataservices/cache/git-((bosh-release-name))-prerelease-(.*).tgz
+      regexp: dataservices/cache/git-((bosh-release-name))-prerelease-(.*).tgz
  
   - name: s3-rc-release
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: sredataservices/rc-release/((bosh-release-name))-(.*).tgz
+      regexp: dataservices/rc-release/((bosh-release-name))-(.*).tgz
 
   - name: s3-final-release
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: sredataservices/release/((bosh-release-name))-(.*).tgz
+      regexp: dataservices/release/((bosh-release-name))-(.*).tgz
 
 
 jobs:

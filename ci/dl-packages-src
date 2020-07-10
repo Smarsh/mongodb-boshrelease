@@ -6,4 +6,4 @@ downloads[mongodb/mongodb-linux-x86_64-${MONGODB_VERSION}.tar.gz]="https://fastd
 # key == PACKAGE
 # value == SOURCE DIRECTORY
 declare -A vendorPackages
-vendorPackages[golang-1.11-linux]=golang-release
+vendorPackages[golang-1.14-linux]=golang-release
