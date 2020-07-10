@@ -12,7 +12,8 @@ OUTPUT_DIR=../rc-release
 SOURCE_DL_DIR=.downloads
 BOSH_RELEASE_VERSION_FILE=../version/number
 SOURCE_VERSION_FILE="$(pwd)/ci/VERSIONS"
-RELEASE_NAME=$(bosh int config/final.yml --path /name)
+APP_RELEASE_NAME="${APP_RELEASE_NAME}"
+BOSH_RELEASE_NAME=$(bosh int config/final.yml --path /name)
 PRERELEASE_REPO=../git-prerelease-repo
 RUN_PIPELINE=0 # if script is running locally then 0 if in consourse pipeline then 1
 
@@ -83,7 +84,7 @@ main() {
     BOSH_RELEASE_VERSION='SNAPSHOT'
   fi
 
-  BOSH_RELEASE_FILE=${RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
+  BOSH_RELEASE_FILE=${APP_RELEASE_NAME}-${BOSH_RELEASE_VERSION}.tgz
 
   [[ ! -d ${SOURCE_DL_DIR} ]] && mkdir ${SOURCE_DL_DIR}
   
@@ -133,7 +134,7 @@ blobstore:
   provider: s3
   options:
     bucket_name: ${BLOBSTORE}
-name: ${RELEASE_NAME}
+name: ${BOSH_RELEASE_NAME}
 EOF
 
 ## Create private.yml for BOSH to use our AWS keys
@@ -159,7 +160,7 @@ EOF
     tarBallPath=${OUTPUT_DIR}/${BOSH_RELEASE_FILE}
     
     loginfo "Create release version ${BOSH_RELEASE_VERSION}"
-    bosh create-release --force --name ${RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
+    bosh create-release --force --name ${BOSH_RELEASE_NAME} --version=${BOSH_RELEASE_VERSION} --timestamp-version --tarball=${tarBallPath}
     
 
     loginfo "BOSH release information for version ${BOSH_RELEASE_VERSION}"
@@ -180,7 +181,7 @@ EOF
       
       [[ -d ${PRERELEASE_REPO} ]] && mkdir -p ${PRERELEASE_REPO}
       loginfo "Upload cache"
-      tar zcf ${PRERELEASE_REPO}/git-${RELEASE_NAME}-prerelease-${BOSH_RELEASE_VERSION}.tgz .
+      tar zcf ${PRERELEASE_REPO}/git-${APP_RELEASE_NAME}-prerelease-${BOSH_RELEASE_VERSION}.tgz .
     fi
   fi
   loginfo "Success"

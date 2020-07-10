@@ -11,6 +11,9 @@ anchors:
     jumpbox_key: ((jumpbox-key))
     ca_cert: ((ca-cert))
     BOSH_ENVIRONMENT: ((bosh-environment))
+  pipeline-vars: &pipeline-vars
+    APP_RELEASE_NAME: ((app-release-name))
+    BLOBSTORE: smarsh-bosh-release-blobs
 
 resources:
   - name: boshcli2
@@ -25,7 +28,7 @@ resources:
       driver: s3
       << : *smarsh_releases_bucket
       region: eu-west-2
-      key: dataservices/((bosh-release-name))/version
+      key: dataservices/((app-release-name))/version
       initial_version: ((initial_version))
 
   - name: git-repo
@@ -40,20 +43,19 @@ resources:
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: dataservices/cache/git-((bosh-release-name))-prerelease-(.*).tgz
+      regexp: dataservices/cache/git-((app-release-name))-prerelease-(.*).tgz
  
   - name: s3-rc-release
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: dataservices/rc-release/((bosh-release-name))-(.*).tgz
+      regexp: dataservices/rc-release/((app-release-name))-(.*).tgz
 
   - name: s3-final-release
     type: s3
     source:
       << : *smarsh_releases_bucket
-      regexp: dataservices/release/((bosh-release-name))-(.*).tgz
-
+      regexp: dataservices/((bosh-release-name))/((app-release-name))-(.*).tgz
 
 jobs:
 
@@ -93,13 +95,13 @@ jobs:
         params: 
           << : *blobstore_credentials
           << : *bosh-creds
-          BLOBSTORE: smarsh-bosh-release-blobs
+          << : *pipeline-vars
       - put: s3-git-prerelease-repo
         params:
-          file: git-prerelease-repo/git-((bosh-release-name))-prerelease-*.tgz
+          file: git-prerelease-repo/git-((app-release-name))-prerelease-*.tgz
       - put: s3-rc-release
         params:
-          file: rc-release/((bosh-release-name))-*.tgz
+          file: rc-release/((app-release-name))-*.tgz
       
   - name: cut-release
     public: true
@@ -129,7 +131,7 @@ jobs:
         params: 
           << : *blobstore_credentials
           << : *bosh-creds
-          BLOBSTORE: smarsh-bosh-release-blobs
+          << : *pipeline-vars
         input_mapping:
           add-blob-release: s3-rc-release
       - put: git-repo
@@ -142,9 +144,6 @@ jobs:
           annotate: version-tag/annotate-msg 
       - put: s3-final-release
         params:
-          file: release-tarball/((bosh-release-name))-*.tgz
+          file: release-tarball/((app-release-name))-*.tgz
       - put: version
         params: {file: version/number}
-      
-       
-      
