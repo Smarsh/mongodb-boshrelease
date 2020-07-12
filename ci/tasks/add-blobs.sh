@@ -12,8 +12,8 @@ OUTPUT_DIR=../rc-release
 SOURCE_DL_DIR=.downloads
 BOSH_RELEASE_VERSION_FILE=../version/number
 SOURCE_VERSION_FILE="$(pwd)/ci/VERSIONS"
-APP_RELEASE_NAME="${APP_RELEASE_NAME}"
 BOSH_RELEASE_NAME=$(bosh int config/final.yml --path /name)
+APP_RELEASE_NAME="${APP_RELEASE_NAME:-${BOSH_RELEASE_NAME}}"
 PRERELEASE_REPO=../git-prerelease-repo
 RUN_PIPELINE=0 # if script is running locally then 0 if in consourse pipeline then 1
 

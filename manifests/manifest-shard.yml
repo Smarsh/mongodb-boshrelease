@@ -4,6 +4,12 @@ releases:
 - name: mongodb-services
   version: latest
 
+addons:
+- name: bpm
+  jobs:
+  - name: bpm
+    release: bpm
+
 update:
   canaries: 1
   canary_watch_time: 30000-240000
