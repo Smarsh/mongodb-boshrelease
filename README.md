@@ -20,6 +20,9 @@
 
 ## Usage
 
+### Caveat
+Final release will (currently) only run on Xenial stemcell. 
+
 ### Releases
 
 Final releases for MongoDB are uploaded to the `smarsh-bosh-releases` S3 bucket. To use these releases, either download the relevant artifact from S3 and run `bosh upload-release <path_to_release.tgz>` or add the final release to Concourse to upload to the director. An example Concourse pipeline may look like:
